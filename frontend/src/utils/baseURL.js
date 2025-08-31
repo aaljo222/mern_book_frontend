@@ -1,5 +1,3 @@
-// frontend/src/utils/baseURL.js
-const getBaseUrl = () => {
-  return import.meta.env.VITE_API_BASE || "http://localhost:5000";
-};
+// 예시
+const getBaseUrl = () => "https://mern-stack-book-store-umber.vercel.app";
 export default getBaseUrl;
