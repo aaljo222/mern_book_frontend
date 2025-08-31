@@ -1,7 +1,7 @@
 {
   "hosting": {
     "site": "mernbookstore-3f800",
-    "public": "mern_book_frontend/dist",
+    "public": "frontend/dist",
     "ignore": ["**/.*", "**/node_modules/**"],
     "rewrites": [{ "source": "**", "destination": "/index.html" }]
   }

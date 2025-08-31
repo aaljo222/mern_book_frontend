@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "frontend": "npm --prefix mern_book_frontend install --no-audit --no-fund && npm --prefix mern_book_frontend run build",
+    "frontend": "npm --prefix frontend install --no-audit --no-fund && npm --prefix frontend run build",
     "serve": "npm run frontend && firebase emulators:start --only functions,hosting",
     "deploy": "npm run frontend && firebase deploy --only functions,hosting"
   }
