@@ -1,73 +1,52 @@
-import {  createContext, useContext, useEffect, useState } from "react";
-import { auth } from "../firebase/firebase.config";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
+// src/context/AuthContext.jsx
+import { createContext, useContext, useEffect, useState } from "react";
+import api from "../lib/api";
 
-const AuthContext =  createContext();
+const AuthContext = createContext(null);
 
-export const useAuth = () => {
-    return useContext(AuthContext)
-}
-
-const googleProvider = new GoogleAuthProvider();
-
-// authProvider
-export const AuthProvide = ({children}) => {
-    const [currentUser, setCurrentUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    // register a user
-    const registerUser = async (email,password) => {
-
-        return await createUserWithEmailAndPassword(auth, email, password);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user"));
+    } catch {
+      return null;
     }
+  });
 
-    // login the user
-    const loginUser = async (email, password) => {
-    
-        return await signInWithEmailAndPassword(auth, email, password)
-    }
+  // 회원가입
+  const registerUser = async (email, password) => {
+    const { data } = await api.post("/auth/register", { email, password });
+    // 백엔드가 { user, accessToken } 형태로 준다고 가정
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("token", data.accessToken);
+    setUser(data.user);
+  };
 
-    // sing up with google
-    const signInWithGoogle = async () => {
-     
-        return await signInWithPopup(auth, googleProvider)
-    }
+  // 로그인
+  const loginUser = async (email, password) => {
+    const { data } = await api.post("/auth/login", { email, password });
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("token", data.accessToken);
+    setUser(data.user);
+  };
 
-    // logout the user
-    const logout = () => {
-        return signOut(auth)
-    }
+  // 로그아웃
+  const logout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setUser(null);
+  };
 
-    // manage user
-    useEffect(() => {
-        const unsubscribe =  onAuthStateChanged(auth, (user) => {
-            setCurrentUser(user);
-            setLoading(false);
+  // 토큰 만료 등 처리(선택)
+  useEffect(() => {
+    // 필요시 /auth/me 같은 헬스 호출로 세션 확인
+  }, []);
 
-            if(user) {
-               
-                const {email, displayName, photoURL} = user;
-                const userData = {
-                    email, username: displayName, photo: photoURL
-                } 
-            }
-        })
+  return (
+    <AuthContext.Provider value={{ user, registerUser, loginUser, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-        return () => unsubscribe();
-    }, [])
-
-
-    const value = {
-        currentUser,
-        loading,
-        registerUser,
-        loginUser,
-        signInWithGoogle,
-        logout
-    }
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    )
-}
+export const useAuth = () => useContext(AuthContext);
